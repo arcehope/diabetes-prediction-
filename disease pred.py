@@ -7,7 +7,7 @@ from streamlit_option_menu import option_menu
 
 diabetes_model = pickle.load(open('diabetes_model.sav', 'rb'))
 
-heart_disease_model = pickle.load(open(' heart_disease_model.sav','rb'))
+# heart_disease_model = pickle.load(open(' heart_disease_model.sav','rb'))
 
 parkinsons_model = pickle.load(open('parkinsons_model.sav', 'rb'))
 
@@ -58,22 +58,58 @@ if (selected == 'Diabetes Prediction'):
     
     with col2:
         Age = st.text_input('Age of the Person')
-    
+
+    # Example doctor database
+    doctor_database = {
+    "Diabetes": [
+        {"name": "Dr. Anshu Malli", "specialization": "Endocrinologist", "contact": "+977-9801234567"},
+        {"name": "Dr. Bishnu Prasad", "specialization": "Diabetologist", "contact": "+977-9812345678"},
+        {"name": "Dr. Meera Thapa", "specialization": "Internal Medicine Specialist", "contact": "+977-9841122334"},
+        {"name": "Dr. Sita Ghimire", "specialization": "Endocrinologist", "contact": "+977-9807654321"},
+        {"name": "Dr. Niraj Sharma", "specialization": "Diabetes Specialist", "contact": "+977-9865432109"}
+    ],
+    "Heart Disease": [
+        {"name": "Dr. Anil K.C.", "specialization": "Cardiologist", "contact": "+977-9810123456"},
+        {"name": "Dr. Uma Bhandari", "specialization": "Heart Specialist", "contact": "+977-9801234567"},
+        {"name": "Dr. Binod Dahal", "specialization": "Cardiac Surgeon", "contact": "+977-9841234567"},
+        {"name": "Dr. Rajendra Pokhrel", "specialization": "Cardiologist", "contact": "+977-9805432167"},
+        {"name": "Dr. Sushma Aryal", "specialization": "Interventional Cardiologist", "contact": "+977-9823456710"}
+    ],
+    "Parkinsons": [
+        {"name": "Dr. Ramesh Adhikari", "specialization": "Neurologist", "contact": "+977-9851234567"},
+        {"name": "Dr. Pramila Joshi", "specialization": "Movement Disorder Specialist", "contact": "+977-9801122334"},
+        {"name": "Dr. Sunita Karki", "specialization": "Neurologist", "contact": "+977-9812349876"},
+        {"name": "Dr. Krishna Lamichhane", "specialization": "Parkinson’s Disease Specialist", "contact": "+977-9809876543"},
+        {"name": "Dr. Bharat Regmi", "specialization": "Neurology Consultant", "contact": "+977-9843123456"}
+    ]
+}
+
     
     # code for Prediction
     diab_diagnosis = ''
+    recommendation = ''
     
     # creating a button for Prediction
-    
     if st.button('Diabetes Test Result'):
-        diab_prediction = diabetes_model.predict([[Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age]])
-        
-        if (diab_prediction[0] == 1):
-          diab_diagnosis = 'The person is diabetic'
-        else:
-          diab_diagnosis = 'The person is not diabetic'
-        
+        try:
+            diab_prediction = diabetes_model.predict([[Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age]])
+            
+            if (diab_prediction[0] == 1):
+                diab_diagnosis = 'The person is diabetic'
+                # Recommendation logic
+                recommended_doctors = doctor_database.get("Diabetes", [])
+                if recommended_doctors:
+                    recommendation = "Recommended doctors:\n"
+                    for doctor in recommended_doctors:
+                        recommendation += f"- {doctor['name']}, {doctor['specialization']}, Contact: {doctor['contact']}\n"
+            else:
+                diab_diagnosis = 'The person is not diabetic'
+        except Exception as e:
+            diab_diagnosis = f"Error: {e}"
+    
     st.success(diab_diagnosis)
+    if recommendation:
+        st.info(recommendation)
 
 
 
