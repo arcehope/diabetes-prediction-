@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime, timedelta
 import pickle
+from appointment_database import load_appointments, save_appointments
 
 def show_lifestyle_tips(disease):
     if disease == "Diabetes":
@@ -35,22 +36,58 @@ def show_lifestyle_tips(disease):
         - Stay hydrated
         """)
 
+def check_appointment_conflict(doctor_name, new_date, new_time, existing_appointments):
+    # Convert new_time to comparable format
+    new_datetime = datetime.combine(new_date, new_time)
+    
+    # Check each existing appointment for conflicts
+    for apt in existing_appointments:
+        if apt['doctor'] == doctor_name:
+            # Convert stored date and time strings to datetime objects
+            apt_date = datetime.strptime(apt['date'], '%B %d, %Y')
+            apt_time = datetime.strptime(apt['time'], '%I:%M %p').time()
+            apt_datetime = datetime.combine(apt_date, apt_time)
+            
+            # If it's the same date, check time slots
+            if apt_date.date() == new_date:
+                # Convert times to minutes for easier comparison
+                new_time_mins = new_time.hour * 60 + new_time.minute
+                apt_time_mins = apt_time.hour * 60 + apt_time.minute
+                
+                # Check if appointments overlap (assuming 15-minute duration)
+                if abs(new_time_mins - apt_time_mins) < 15:
+                    return True
+    return False
+
 def book_appointment(doctor, date, time):
+    # Load existing appointments
+    appointments = load_appointments()
+    
+    # Check for conflicts
+    if check_appointment_conflict(doctor['name'], date, time, appointments):
+        st.error("❌ This time slot is already booked. Please select a different time.")
+        return
+    
+    # Create appointment record
     appointment = {
+        'patient': st.session_state.username,
         'doctor': doctor['name'],
         'specialization': doctor['specialization'],
-        'date': date,
-        'time': time,
-        'contact': doctor['contact']
+        'date': date.strftime('%B %d, %Y'),
+        'time': time.strftime('%I:%M %p'),
+        'contact': doctor['contact'],
+        'status': 'Scheduled'
     }
     
-    if 'appointments' not in st.session_state:
-        st.session_state.appointments = []
-    st.session_state.appointments.append(appointment)
+    # Add new appointment
+    appointments.append(appointment)
+    save_appointments(appointments)
     
+    # Show success message as a popup
     st.balloons()
     st.success(f"✅ Appointment Booked Successfully!")
     
+    # Display appointment details
     with st.container():
         st.markdown("### 📋 Appointment Details")
         st.markdown(f"""
@@ -59,6 +96,7 @@ def book_appointment(doctor, date, time):
         **Date:** {date.strftime('%B %d, %Y')}
         **Time:** {time.strftime('%I:%M %p')}
         **Contact:** {doctor['contact']}
+        **Status:** Scheduled
         """)
 
 def user_interface(diabetes_model, doctor_database):
@@ -184,3 +222,22 @@ def user_interface(diabetes_model, doctor_database):
                     - Time: {apt['time'].strftime('%I:%M %p')}
                     ---
                     """)
+
+    # Display appointment history from database
+    appointments = load_appointments()
+    user_appointments = [apt for apt in appointments if apt.get('patient') == st.session_state.username]
+    
+    if user_appointments:
+        st.markdown("---")
+        st.markdown("### 📅 Your Appointment History")
+        for idx, apt in enumerate(user_appointments, 1):
+            with st.container():
+                st.markdown(f"""
+                **Appointment #{idx}**
+                - Doctor: {apt['doctor']}
+                - Specialization: {apt['specialization']}
+                - Date: {apt['date']}
+                - Time: {apt['time']}
+                - Status: {apt.get('status', 'Scheduled')}
+                ---
+                """)

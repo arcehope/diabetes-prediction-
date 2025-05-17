@@ -1,0 +1,29 @@
+[
+    {
+        "patient": "user",
+        "doctor": "Dr. Anshu Malli",
+        "specialization": "Endocrinologist",
+        "date": "May 17, 2025",
+        "time": "09:00 AM",
+        "contact": "+977-9801234567",
+        "status": "Scheduled"
+    },
+    {
+        "patient": "user",
+        "doctor": "Dr. Bishnu Prasad",
+        "specialization": "Diabetologist",
+        "date": "May 17, 2025",
+        "time": "10:00 AM",
+        "contact": "+977-9812345678",
+        "status": "Scheduled"
+    },
+    {
+        "patient": "user",
+        "doctor": "Dr. Bishnu Prasad",
+        "specialization": "Diabetologist",
+        "date": "May 18, 2025",
+        "time": "10:15 AM",
+        "contact": "+977-9812345678",
+        "status": "Scheduled"
+    }
+]
